@@ -1,7 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../contracts/YourContract.sol";
+import "../contracts/Euro2024Token.sol";
+import "../contracts/PredictionMarket.sol";
 import "./DeployHelpers.s.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
@@ -16,22 +17,27 @@ contract DeployScript is ScaffoldETHDeploy {
         }
         vm.startBroadcast(deployerPrivateKey);
 
-        YourContract yourContract = new YourContract(
-            vm.addr(deployerPrivateKey)
+        // Deploy Token
+        Euro2024Token euro2024Token = new Euro2024Token(
+            0x260F8cD82D85431789D04470E9AA94fe4EB45406
         );
         console.logString(
             string.concat(
-                "YourContract deployed at: ", vm.toString(address(yourContract))
+                "Token deployed at: ",
+                vm.toString(address(euro2024Token))
+            )
+        );
+
+        // Deploy PredictionMarket
+        PredictionMarket predictionMarket = new PredictionMarket();
+        console.logString(
+            string.concat(
+                "PredictionMarket deployed at: ",
+                vm.toString(address(predictionMarket))
             )
         );
 
         vm.stopBroadcast();
-
-        /**
-         * This function generates the file containing the contracts Abi definitions.
-         * These definitions are used to derive the types needed in the custom scaffold-eth hooks, for example.
-         * This function should be called last.
-         */
         exportDeployments();
     }
 

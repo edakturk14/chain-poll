@@ -20,9 +20,7 @@ export const getParsedError = (error: any): string => {
         parsedError.data.errorName !== "Error"
       ) {
         const customErrorArgs = parsedError.data.args?.toString() ?? "";
-        return `${parsedError.shortMessage.replace(/reverted\.$/, "reverted with the following reason:")}\n${
-          parsedError.data.errorName
-        }(${customErrorArgs})`;
+        return `${parsedError.data.errorName}(${customErrorArgs})`;
       }
 
       return parsedError.shortMessage;
