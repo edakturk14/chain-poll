@@ -1,9 +1,7 @@
 "use client";
 
-import type { NextPage } from "next";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { useState, useEffect } from "react";
-import { parseEther } from "viem";
 import { useScaffoldWriteContract, useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 interface Team {
@@ -38,92 +36,88 @@ const teams: Team[] = [
   { name: "Ukraine", code: "UA" },
 ];
 
-const Home: NextPage = () => {
+const VotingPage = () => {
   const { address: connectedAddress } = useAccount();
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
-  const [hasPlacedBet, setHasPlacedBet] = useState<boolean>(false);
-  const { writeContractAsync, isPending } = useScaffoldWriteContract("PredictionMarket");
+  const [selectedTeam, setSelectedTeam] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const [hasVoted, setHasVoted] = useState<boolean>(false);
 
-  const { data: totalParticipants, isLoading: isTotalParticipantsLoading } = useScaffoldReadContract({
+  const { data: voted, isLoading: isCheckingVote } = useScaffoldReadContract({
     contractName: "PredictionMarket",
-    functionName: "getParticipantCount",
-  });
-
-  const { data: totalFunds, isLoading: isTotalFundsLoading } = useScaffoldReadContract({
-    contractName: "PredictionMarket",
-    functionName: "getTotalFunds",
-  });
-
-  const { data: userHasPlacedBet } = useScaffoldReadContract({
-    contractName: "PredictionMarket",
-    functionName: "hasPlacedBet",
+    functionName: "hasVoted",
     args: [connectedAddress],
   });
 
-  useEffect(() => {
-    if (userHasPlacedBet !== undefined) {
-      setHasPlacedBet(userHasPlacedBet);
-    }
-  }, [userHasPlacedBet]);
+  const { writeContractAsync, isPending } = useScaffoldWriteContract("PredictionMarket");
 
-  const handlePlaceBet = async () => {
+  useEffect(() => {
+    if (voted !== undefined) {
+      setHasVoted(voted);
+    }
+  }, [voted]);
+
+  const handleVote = async () => {
+    if (selectedTeam === null) {
+      setMessage("Please select a team to vote for.");
+      return;
+    }
+
+    setMessage("");
     try {
-      if (selectedTeam) {
-        const teamIndex = teams.findIndex(team => team.name === selectedTeam);
-        if (teamIndex !== -1) {
-          await writeContractAsync(
-            {
-              functionName: "placeBet",
-              args: [teamIndex],
-              value: parseEther("1"), // 1 ETH
-            },
-            {
-              onBlockConfirmation: txnReceipt => {
-                console.log("📦 Transaction blockHash", txnReceipt.blockHash);
-              },
-            },
-          );
+      await writeContractAsync(
+        {
+          functionName: "placeVote",
+          args: [selectedTeam],
+        },
+        {
+          onBlockConfirmation: txnReceipt => {
+            console.log("📦 Transaction blockHash", txnReceipt.blockHash);
+          },
         }
-      }
-    } catch (e) {
-      console.error("Error placing bet", e);
+      );
+      setMessage("Successfully placed vote!");
+    } catch (error) {
+      console.error("Error placing vote:", error);
+      setMessage("Error placing vote. Please try again.");
     }
   };
 
   return (
-    <>
-      <div className="flex items-center flex-col flex-grow pt-10">
-        <h1 className="text-3xl font-bold mb-5 text-white">Who will win Euro 2024?</h1>
-        <div className="grid grid-cols-4 gap-4">
-          {teams.map((team, index) => (
-            <button
-              key={index}
-              className={`btn flex text-lg items-center ${selectedTeam === team.name ? "btn-primary" : "btn-secondary"}`}
-              onClick={() => setSelectedTeam(team.name)}
-            >
-              <img
-                src={`https://countryflagsapi.netlify.app/flag/${team.code}.svg`}
-                alt={`${team.name} flag`}
-                className="w-8 h-6 mr-2"
-              />
-              {team.name}
-            </button>
-          ))}
+    <div className="flex items-center flex-col flex-grow pt-10">
+      <h1 className="text-3xl font-bold mb-5 text-white">Who will win Euro 2024?</h1>
+      <div className="grid grid-cols-4 gap-4">
+        {teams.map((team, index) => (
+          <button
+            key={index}
+            className={`btn flex text-lg items-center ${selectedTeam === index ? "btn-primary" : "btn-secondary"}`}
+            onClick={() => setSelectedTeam(index)} // Passing team index instead of name
+          >
+            <img
+              src={`https://countryflagsapi.netlify.app/flag/${team.code}.svg`}
+              alt={`${team.name} flag`}
+              className="w-8 h-6 mr-2"
+            />
+            {team.name}
+          </button>
+        ))}
+      </div>
+      {hasVoted ? (
+        <div className="mt-5 text-center">
+          <p className="text-xl text-white">You have already voted.</p>
         </div>
-        {selectedTeam && (
+      ) : (
+        selectedTeam !== null && (
           <div className="mt-5 text-center">
-            <p className="text-xl text-white">You have selected: <strong>{selectedTeam}</strong></p>
-            {hasPlacedBet && (
-              <p className="text-red-500 mt-2">You have placed a bet.</p>
-            )}
-            <button className="btn btn-primary" onClick={handlePlaceBet} disabled={isPending || hasPlacedBet}>
-              {isPending ? <span className="loading loading-spinner loading-sm"></span> : "Place Bet"}
+            <p className="text-xl text-white">You have selected: <strong>{teams[selectedTeam].name}</strong></p>
+            <button className="btn btn-primary" onClick={handleVote} disabled={isPending}>
+              {isPending ? <span className="loading loading-spinner loading-sm"></span> : "Place Vote"}
             </button>
           </div>
-        )}
-      </div>
-    </>
+        )
+      )}
+      {message && <p className="text-white mt-5">{message}</p>}
+    </div>
   );
 };
 
-export default Home;
+export default VotingPage;

@@ -22,8 +22,8 @@ export const wagmiConfig = createConfig({
       transport: http(getAlchemyHttpUrl(chain.id)),
       ...(chain.id !== (hardhat as Chain).id
         ? {
-            pollingInterval: scaffoldConfig.pollingInterval,
-          }
+          pollingInterval: scaffoldConfig.pollingInterval,
+        }
         : {}),
     });
   },
