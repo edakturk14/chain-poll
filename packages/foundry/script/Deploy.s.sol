@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../contracts/PredictionMarket.sol";
+import "../contracts/PollContract.sol";
 import "./DeployHelpers.s.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
@@ -16,12 +16,12 @@ contract DeployScript is ScaffoldETHDeploy {
         }
         vm.startBroadcast(deployerPrivateKey);
 
-        // Deploy PredictionMarket
-        PredictionMarket predictionMarket = new PredictionMarket();
+        // Deploy PollFactory
+        PollContract pollContract = new PollContract();
         console.logString(
             string.concat(
-                "PredictionMarket deployed at: ",
-                vm.toString(address(predictionMarket))
+                "PollFactory deployed at: ",
+                vm.toString(address(pollContract))
             )
         );
 

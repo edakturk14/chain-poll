@@ -6,81 +6,151 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
-    PredictionMarket: {
-      address: "0x59b670e9fA9D0A427751Af201D676719a970857b",
+    PollContract: {
+      address: "0x9A676e781A523b5d0C0e43731313A708CB607508",
       abi: [
         {
-          inputs: [],
-          stateMutability: "nonpayable",
-          type: "constructor",
-        },
-        {
           anonymous: false,
           inputs: [
             {
-              indexed: true,
-              internalType: "uint8",
-              name: "winningTeam",
-              type: "uint8",
+              indexed: false,
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "creator",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "question",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "string[]",
+              name: "options",
+              type: "string[]",
             },
           ],
-          name: "MarketClosed",
+          name: "PollCreated",
           type: "event",
         },
         {
           anonymous: false,
           inputs: [
             {
-              indexed: true,
-              internalType: "address",
-              name: "voter",
-              type: "address",
-            },
-            {
-              indexed: true,
-              internalType: "uint8",
-              name: "team",
-              type: "uint8",
+              indexed: false,
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
             },
           ],
-          name: "VotePlaced",
+          name: "PollEnded",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "optionIndex",
+              type: "uint256",
+            },
+          ],
+          name: "VoteCast",
           type: "event",
         },
         {
           inputs: [
             {
-              internalType: "address",
-              name: "",
-              type: "address",
+              internalType: "string",
+              name: "question",
+              type: "string",
+            },
+            {
+              internalType: "string[]",
+              name: "options",
+              type: "string[]",
             },
           ],
-          name: "chosenTeam",
+          name: "createPoll",
           outputs: [
             {
-              internalType: "uint8",
+              internalType: "uint256",
               name: "",
-              type: "uint8",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
+            },
+          ],
+          name: "endPoll",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
+            },
+          ],
+          name: "getPoll",
+          outputs: [
+            {
+              internalType: "address",
+              name: "creator",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "question",
+              type: "string",
+            },
+            {
+              internalType: "string[]",
+              name: "options",
+              type: "string[]",
+            },
+            {
+              internalType: "uint256[]",
+              name: "votes",
+              type: "uint256[]",
+            },
+            {
+              internalType: "bool",
+              name: "isActive",
+              type: "bool",
             },
           ],
           stateMutability: "view",
           type: "function",
         },
         {
-          inputs: [
-            {
-              internalType: "uint8",
-              name: "_winningTeam",
-              type: "uint8",
-            },
-          ],
-          name: "closeMarket",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
           inputs: [],
-          name: "getParticipantCount",
+          name: "getPollCount",
           outputs: [
             {
               internalType: "uint256",
@@ -93,25 +163,32 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "getTeamVotes",
-          outputs: [
-            {
-              internalType: "uint256[]",
-              name: "",
-              type: "uint256[]",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "getWinners",
+          name: "getPolls",
           outputs: [
             {
               internalType: "address[]",
-              name: "",
+              name: "creators",
               type: "address[]",
+            },
+            {
+              internalType: "string[]",
+              name: "questions",
+              type: "string[]",
+            },
+            {
+              internalType: "string[][]",
+              name: "optionsArray",
+              type: "string[][]",
+            },
+            {
+              internalType: "uint256[][]",
+              name: "votesArray",
+              type: "uint256[][]",
+            },
+            {
+              internalType: "bool[]",
+              name: "isActiveArray",
+              type: "bool[]",
             },
           ],
           stateMutability: "view",
@@ -119,26 +196,18 @@ const deployedContracts = {
         },
         {
           inputs: [
+            {
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
+            },
             {
               internalType: "address",
               name: "user",
               type: "address",
             },
           ],
-          name: "hasVoted",
-          outputs: [
-            {
-              internalType: "bool",
-              name: "",
-              type: "bool",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "marketClosed",
+          name: "hasUserVoted",
           outputs: [
             {
               internalType: "bool",
@@ -157,12 +226,22 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
-          name: "participants",
+          name: "polls",
           outputs: [
             {
               internalType: "address",
-              name: "",
+              name: "creator",
               type: "address",
+            },
+            {
+              internalType: "string",
+              name: "question",
+              type: "string",
+            },
+            {
+              internalType: "bool",
+              name: "isActive",
+              type: "bool",
             },
           ],
           stateMutability: "view",
@@ -171,27 +250,19 @@ const deployedContracts = {
         {
           inputs: [
             {
-              internalType: "uint8",
-              name: "_team",
-              type: "uint8",
+              internalType: "uint256",
+              name: "pollId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "optionIndex",
+              type: "uint256",
             },
           ],
-          name: "placeVote",
+          name: "vote",
           outputs: [],
           stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [],
-          name: "winningTeam",
-          outputs: [
-            {
-              internalType: "uint8",
-              name: "",
-              type: "uint8",
-            },
-          ],
-          stateMutability: "view",
           type: "function",
         },
       ],
